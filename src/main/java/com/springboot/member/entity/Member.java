@@ -61,6 +61,12 @@ public class Member {
             like.setMember(this);
         }
     }
+    public void removeLike(Like like){
+        this.likes.remove(like);
+        if(like.getMember() == this){
+            like.removeMember(this);
+        }
+    }
     public enum MemberStatus{
         MEMBER_ACTIVE("활동중"),
         MEMBER_SLEEP("휴면"),

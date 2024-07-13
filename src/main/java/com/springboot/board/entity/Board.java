@@ -63,6 +63,12 @@ public class Board {
             this.like = like;
         }
     }
+    public void removeLike(Like like){
+        this.like = null;
+        if(like.getBoard() == this){
+            like.removeBoard(this);
+        }
+    }
     public void clearLike(){
         this.setLike(null);
     }

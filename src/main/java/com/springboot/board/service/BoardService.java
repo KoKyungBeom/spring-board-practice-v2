@@ -6,6 +6,8 @@ import com.springboot.board.repository.BoardRepository;
 import com.springboot.board.repository.LikeRepository;
 import com.springboot.exception.BusinessLogicException;
 import com.springboot.exception.ExceptionCode;
+import com.springboot.member.entity.Member;
+import com.springboot.member.repository.MemberRepository;
 import com.springboot.reply.service.ReplyService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,33 +18,21 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
-public class BoardService {
+public class
+BoardService {
     private final BoardRepository boardRepository;
     private final ReplyService replyService;
     private final LikeRepository likeRepository;
-    public BoardService(BoardRepository boardRepository, ReplyService replyService, LikeRepository likeRepository) {
+    private final MemberRepository memberRepository;
+    public BoardService(BoardRepository boardRepository, ReplyService replyService, LikeRepository likeRepository, MemberRepository memberRepository) {
         this.boardRepository = boardRepository;
         this.replyService = replyService;
         this.likeRepository = likeRepository;
+        this.memberRepository = memberRepository;
     }
 
     public Board createBoard(Board board){
         return boardRepository.save(board);
-    }
-    public Board createLike(Board board){
-
-        if(board.getLike() == null){
-            Like like = new Like();
-            like.setMember(board.getMember());
-            board.setLike(like);
-        }else {
-            likeRepository.delete(board.getLike());
-            board.clearLike();
-        }
-        return boardRepository.save(board);
-    }
-    public void deleteLike(Board board){
-        likeRepository.delete(board.getLike());
     }
     public Board updateBoard(Board board){
         Board findBoard = findVerifiedBoard(board.getBoardId());
@@ -83,5 +73,26 @@ public class BoardService {
         }
         boardRepository.save(findBoard);
     }
+    public void toggleLike(Like like) {
+        Optional<Board> board = boardRepository.findById(like.getBoard().getBoardId());
+        Optional<Member> member = memberRepository.findById(like.getMember().getMemberId());
 
+        Board findBoard = board.orElseThrow(() -> new BusinessLogicException(ExceptionCode.BOARD_NOT_FOUND));
+        Member findMember = member.orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
+
+        Optional<Like> optionalLike = likeRepository.findByMemberAndBoard(
+                findMember, findBoard);
+
+        if(optionalLike.isPresent()) {
+            Like findLike = optionalLike.orElseThrow(() -> new BusinessLogicException(ExceptionCode.REPLY_EXISTS));
+            findMember.removeLike(findLike);
+            findBoard.removeLike(findLike);
+            likeRepository.delete(findLike);
+        } else {
+            Like addLike = new Like();
+            addLike.setBoard(findBoard);
+            addLike.setMember(findMember);
+            likeRepository.save(addLike);
+        }
+    }
 }

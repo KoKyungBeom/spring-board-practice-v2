@@ -17,11 +17,11 @@ public class Like {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long likeId;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "MEMBER_ID")
     private Member member;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "BOARD_ID")
     private Board board;
 
@@ -35,6 +35,18 @@ public class Like {
         this.board = board;
         if(board.getLike() != this){
             board.setLike(this);
+        }
+    }
+    public void removeBoard(Board board){
+        this.board = null;
+        if(board.getLike() == this){
+            board.removeLike(this);
+        }
+    }
+    public void removeMember(Member member){
+        this.member = null;
+        if(member.getLikes().contains(this)){
+            member.removeLike(this);
         }
     }
 }

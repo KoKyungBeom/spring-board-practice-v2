@@ -3,6 +3,7 @@ package com.springboot.board.controller;
 import com.springboot.board.dto.BoardPatchDto;
 import com.springboot.board.dto.BoardPostDto;
 import com.springboot.board.dto.BoardResponseDto;
+import com.springboot.board.dto.LikePostDto;
 import com.springboot.board.entity.Board;
 import com.springboot.board.entity.Like;
 import com.springboot.board.mapper.BoardMapper;
@@ -38,18 +39,14 @@ public class BoardController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
     @PostMapping("/like/{board-id}")
-    public ResponseEntity postLike(@PathVariable("board-id") @Positive long boardId){
-        Board board = boardService.findBoard(boardId);
-        boardService.createLike(board);
+    public ResponseEntity postLike(@PathVariable("board-id") @Positive long boardId,
+                                   @RequestBody LikePostDto likePostDto){
+        likePostDto.setBoardId(boardId);
+
+        boardService.toggleLike(boardMapper.likePostDtoToLike(likePostDto));
+
         return new ResponseEntity(HttpStatus.OK);
     }
-    @DeleteMapping("/like/{board-id}/")
-    public ResponseEntity deleteLike(@PathVariable("board-id") @Positive long boardId){
-        Board board = boardService.findBoard(boardId);
-        boardService.deleteLike(board);
-        return new ResponseEntity(HttpStatus.NO_CONTENT);
-    }
-
     @PatchMapping("/{board-id}")
     public ResponseEntity patchBoard(@PathVariable("board-id") @Positive long boardId,
                                      @Valid @RequestBody BoardPatchDto boardPatchDto){
